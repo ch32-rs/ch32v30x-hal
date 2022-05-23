@@ -9,6 +9,10 @@
 use crate::pac::{EXTEND, RCC};
 use crate::time::Hertz;
 
+pub use self::rec::PeripheralREC;
+
+pub mod rec;
+
 /// Configuration of the core clocks
 pub struct Config {
     // 3-25MHz HSE OSC
@@ -68,9 +72,6 @@ pub struct Rcc {
     config: Config,
     pub(crate) rb: RCC,
 }
-
-// TODO PeripheralREC
-pub struct PeripheralREC;
 
 /// Core Clock Distribution and Reset (CCDR)
 pub struct Ccdr {
@@ -269,7 +270,7 @@ impl Rcc {
                 pll2clk: None,
                 pll3clk: None,
             },
-            peripheral: PeripheralREC,
+            peripheral: unsafe { PeripheralREC::new_singleton() },
             rb: self.rb,
         }
     }
@@ -285,19 +286,19 @@ impl Rcc {
         unimplemented!()
     }
 
-    pub fn mco_from_pllclk_div2(mut self, freq: Hertz) -> Self {
+    pub fn mco_from_pllclk_div2(mut self) -> Self {
         unimplemented!()
     }
 
-    pub fn mco_from_pll2clk(mut self, freq: Hertz) -> Self {
+    pub fn mco_from_pll2clk(mut self) -> Self {
         unimplemented!()
     }
 
-    pub fn mco_from_pll3clk_div2(mut self, freq: Hertz) -> Self {
+    pub fn mco_from_pll3clk_div2(mut self) -> Self {
         unimplemented!()
     }
 
-    pub fn mco_from_pll3clk(mut self, freq: Hertz) -> Self {
+    pub fn mco_from_pll3clk(mut self) -> Self {
         unimplemented!()
     }
 

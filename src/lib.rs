@@ -1,5 +1,5 @@
 #![no_std]
-#![allow(non_camel_case_types)]
+#![allow(non_camel_case_types, non_snake_case)]
 
 pub use embedded_hal as hal;
 pub use nb;
