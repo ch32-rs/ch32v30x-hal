@@ -18,3 +18,4 @@ pub mod prelude;
 pub mod delay;
 
 pub mod rcc;
+pub mod gpio;

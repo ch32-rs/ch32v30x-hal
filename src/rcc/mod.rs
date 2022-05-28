@@ -111,24 +111,35 @@ impl Rcc {
         self
     }
 
-    /// Set input frequency to the SCGU - ALIAS
+    /// Set input frequency of system clock
     #[must_use]
     pub fn sysclk(mut self, freq: Hertz) -> Self {
         self.config.sysclk = Some(freq.raw());
         self
     }
 
-    /// Set the peripheral clock frequency for AHB and AXI peripherals. There
-    /// are several gated versions `rcc_hclk[1-4]` for different power domains,
-    /// and the AXI bus clock is called `rcc_aclk`. However they are all the
-    /// same frequency.
+    /// Set the peripheral clock frequency for AHB peripherals.
     #[must_use]
     pub fn hclk(mut self, freq: Hertz) -> Self {
         self.config.rcc_hclk = Some(freq.raw());
         self
     }
 
-    // TODO pclk1, pclk2
+    /// Set the peripheral clock frequency for APB1 peripherals.
+    /// USART[2-3], UART[4-8], SPI[2-3], I2C[1-2], USBD, TIM[2-5]
+    #[must_use]
+    pub fn pclk1(mut self, freq: Hertz) -> Self {
+        self.config.rcc_pclk1 = Some(freq.raw());
+        self
+    }
+
+    /// Set the peripheral clock frequency for APB2 peripherals.
+    /// GPIOx, USART1, SPI1, TIM1, TIM[9-10]
+    #[must_use]
+    pub fn pclk2(mut self, freq: Hertz) -> Self {
+        self.config.rcc_pclk2 = Some(freq.raw());
+        self
+    }
 
     /// Reset sysclk, use HSI
     fn sysclk_reset(&mut self) {
@@ -242,6 +253,7 @@ impl Rcc {
     pub fn freeze(mut self) -> Ccdr {
         let (sysclk, pllclk) = self.sysclk_setup();
 
+        // HCLK defaults to SYSCLK
         let hclk = self.config.rcc_hclk.unwrap_or(sysclk.raw());
         let mut hclk_satisfied = false;
         if hclk != sysclk.raw() {
@@ -256,16 +268,48 @@ impl Rcc {
                 panic!("hclk not satisfied");
             }
         }
-
         let hclk = Hertz::from_raw(hclk);
+
+        let pclk1 = self.config.rcc_pclk1.unwrap_or(hclk.raw());
+        let mut pclk1_satisfied = false;
+        if pclk1 != hclk.raw() {
+            for (ppre1, div) in (0b011..=0b111).zip([1, 2, 4, 8, 16]) {
+                if hclk.raw() / div == pclk1 {
+                    self.rb
+                        .cfgr0
+                        .modify(|_, w| unsafe { w.ppre1().bits(ppre1) });
+                    pclk1_satisfied = true;
+                    break;
+                }
+            }
+            if !pclk1_satisfied {
+                panic!("pclk1 not satisfied");
+            }
+        }
+
+        let pclk2 = self.config.rcc_pclk2.unwrap_or(hclk.raw());
+        let mut pclk2_satisfied = false;
+        if pclk2 != hclk.raw() {
+            for (ppre2, div) in (0b011..=0b111).zip([1, 2, 4, 8, 16]) {
+                if hclk.raw() / div == pclk2 {
+                    self.rb
+                        .cfgr0
+                        .modify(|_, w| unsafe { w.ppre2().bits(ppre2) });
+                    pclk2_satisfied = true;
+                    break;
+                }
+            }
+            if !pclk2_satisfied {
+                panic!("pclk2 not satisfied");
+            }
+        }
 
         Ccdr {
             clocks: CoreClocks {
                 sysclk: sysclk,
                 hclk: hclk,
-                // TODO pclk1, pclk2
-                pclk1: hclk,
-                pclk2: hclk,
+                pclk1: Hertz::from_raw(pclk1),
+                pclk2: Hertz::from_raw(pclk2),
                 pllclk: pllclk,
                 pll2clk: None,
                 pll3clk: None,
@@ -278,30 +322,42 @@ impl Rcc {
 
 /// Setters for Micro-Controller Out (MCO)
 impl Rcc {
+    /// Set the MCO output frequency. The clock is sourced from the HSE
     pub fn mco_from_hse(mut self) -> Self {
         unimplemented!()
     }
 
+    /// Set the MCO output frequency. The clock is sourced from the HSI
     pub fn mco_from_hsi(mut self) -> Self {
         unimplemented!()
     }
 
+    /// Set the MCO output frequency. The clock is sourced from the SYSCLK
+    pub fn mco_from_sysclk(mut self) -> Self {
+        unimplemented!()
+    }
+
+    /// Set the MCO output frequency. The clock is sourced from the PLLCLK/2
     pub fn mco_from_pllclk_div2(mut self) -> Self {
         unimplemented!()
     }
 
+    /// Set the MCO output frequency. The clock is sourced from the PLL2CLK
     pub fn mco_from_pll2clk(mut self) -> Self {
         unimplemented!()
     }
 
+    /// Set the MCO output frequency. The clock is sourced from the PLL3CLK/2
     pub fn mco_from_pll3clk_div2(mut self) -> Self {
         unimplemented!()
     }
 
+    /// Set the MCO output frequency. The clock is sourced from the PLL3CLK
     pub fn mco_from_pll3clk(mut self) -> Self {
         unimplemented!()
     }
 
+    /// Set the MCO output frequency. The clock is sourced from the XTI
     pub fn mco_from_xti(mut self) -> Self {
         unimplemented!()
     }
