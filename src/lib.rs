@@ -13,9 +13,14 @@ pub use ch32v3 as pac;
 #[cfg(feature = "rt")]
 pub use crate::pac::interrupt;
 
-pub mod time;
-pub mod prelude;
 pub mod delay;
+pub mod prelude;
+pub mod time;
 
-pub mod rcc;
 pub mod gpio;
+pub mod rcc;
+
+mod sealed {
+    pub trait Sealed {}
+}
+pub(crate) use sealed::Sealed;

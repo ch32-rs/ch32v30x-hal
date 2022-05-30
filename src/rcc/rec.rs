@@ -20,27 +20,6 @@ pub trait ResetEnable {
     fn reset(self) -> Self;
 }
 
-// TODO PeripheralREC
-/*
-pub struct PeripheralREC {
-    pub GPIOA: Gpioa,
-    pub GPIOB: Gpiob,
-}
-
-impl PeripheralREC {
-    pub(super) unsafe fn new_singleton() -> PeripheralREC {
-        PeripheralREC {
-            GPIOA: Gpioa {
-                _marker: PhantomData,
-            },
-            GPIOB: Gpiob {
-                _marker: PhantomData,
-            },
-        }
-    }
-}
- */
-
 macro_rules! peripheral_reset_and_enable_control_gen {
     ($($PERIPH:ident: $Periph:ident => ($enr:ident, $enf:ident, $rstr:ident, $rstf:ident) ; )+) => {
         pub struct PeripheralREC {
@@ -109,4 +88,24 @@ peripheral_reset_and_enable_control_gen!(
     AFIO: Afio => (apb2pcenr, afioen, apb2prstr, afiorst) ;
 
     USART1: Usart1 => (apb2pcenr, usart1en, apb2prstr, usart1rst) ;
+
+    ADC1: Adc1 => (apb2pcenr, adc1en, apb2prstr, adc1rst) ;
+    ADC2: Adc2 => (apb2pcenr, adc2en, apb2prstr, adc2rst) ;
+
 );
+
+
+/// ADCPRE, ADC clock source
+#[repr(u8)]
+pub enum AdcClkSel {
+    PCLK2_Div2 = 0b00,
+    PCLK2_Div4 = 0b01,
+    PCLK2_Div6 = 0b10,
+    PCLK2_Div8 = 0b11,
+}
+
+impl PeripheralREC {
+    pub fn kernel_adc_clk_mux(&mut self, sel: AdcClkSel) -> &mut Self {
+        unimplemented!()
+    }
+}
